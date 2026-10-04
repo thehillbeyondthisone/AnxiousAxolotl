@@ -598,6 +598,7 @@ export class Game {
       const handler = () => {
         display.textContent = slider.value + '%';
         callback(parseFloat(slider.value) / 100);
+        this.saveProfile();
       };
       slider.addEventListener('input', handler);
     };
