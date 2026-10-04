@@ -120,7 +120,6 @@ export class WorldGenerator {
         y: trailR * this.tileSize,
         w: 64, h: 160,
         targetArea: 'woods',
-        requires: 'helmet',
         label: '🌲 Trail into the Woods'
       }
     ];
@@ -575,7 +574,7 @@ export class WorldGenerator {
     const farmPlots = [];
     const farmStartC = Math.max(2, homeC - 6);
     const farmStartR = Math.min(this.rows - 6, homeR + 3);
-    for (let pr = 0; pr < 3; pr++) {
+    for (let pr = 0; pr < 4; pr++) {
       for (let pc = 0; pc < 4; pc++) {
         const x = (farmStartC + pc) * this.tileSize + 10;
         const y = (farmStartR + pr) * this.tileSize + 10;
@@ -597,7 +596,7 @@ export class WorldGenerator {
       farmStartC * this.tileSize - this.tileSize,
       farmStartR * this.tileSize - this.tileSize,
       4 * this.tileSize + 2 * this.tileSize,
-      3 * this.tileSize + 2 * this.tileSize
+      4 * this.tileSize + 2 * this.tileSize
     );
 
     // A few lily pads dotting the pond's edges (skip tiles under the cabin)
@@ -1249,6 +1248,19 @@ export class WorldGenerator {
         x: (i * lampSpacing + 2) * this.tileSize,
         y: concreteStart * this.tileSize + this._randInt(10, 30),
         type: 'lamp'
+      });
+    }
+
+    // Dev-friendly campsite computer near the starting lake/beach boundary so
+    // disc work can be tested without taking the bus to town first.
+    const lakeZone = zones.find(z => z.type === 'lake');
+    const beachZone = zones.find(z => z.type === 'beach');
+    if (lakeZone && beachZone) {
+      decorations.push({
+        x: Math.min((this.cols - 3) * this.tileSize, lakeZone.spawnX + this.tileSize * 2),
+        y: (beachZone.r + Math.max(0, beachZone.h - 1)) * this.tileSize + 24,
+        type: 'computer',
+        hostName: 'Camp Test Terminal',
       });
     }
 

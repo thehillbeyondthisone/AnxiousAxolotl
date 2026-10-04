@@ -71,6 +71,7 @@ export const MinigameMethods = {
     this.lastTime = performance.now();
     if (mg && forcedResult) mg.result = forcedResult;
     if (mg && onDone) onDone(mg);
+    this.saveProfile();
     this.updateHUD();
   },
 
@@ -97,6 +98,7 @@ export const MinigameMethods = {
   _resolveFishing(f) {
     if (f.result === 'caught') {
       this.stats.fishCaught++;
+      this.recordProgress('fish');
       const fish = { name: f.fish.name, type: 'fish', value: f.fish.value, emoji: f.fish.emoji, isFish: true };
       this.playSound('sell');
       this.spawnBurst(this.player.x, this.player.y - 10, 'rgba(56, 189, 248, ALPHA)', 12);

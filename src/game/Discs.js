@@ -1,11 +1,13 @@
 import { DiscBase, drawScreenFrame } from './DiscBase.js';
 import { DISC_CATALOG, findDisc } from './DiscCatalog.js';
 import { CozyCatRoomDisc } from './CozyCatRoom.js';
+import { NauticalSolitaireDisc } from './NauticalSolitaire.js';
 
 export function createDiscExperience(id, progress = {}) {
   if (id === 'deep_channel') return new DeepChannelDisc(progress);
   if (id === 'office_98') return new Office98Disc(progress);
   if (id === 'cozy_cat_room') return new CozyCatRoomDisc(progress);
+  if (id === 'nautical_solitaire') return new NauticalSolitaireDisc(progress);
   return new PondSkaterDisc(progress);
 }
 

@@ -60,7 +60,7 @@ export const HOME_UPGRADES = [
     emoji: '🐢',
     cost: 160,
     branch: 'Companion',
-    desc: 'Opens a tiny shell crew area where your companion can recruit baby turtles for home projects.',
+    desc: 'Baby turtles water one growing crop each morning, starting with the lowest-numbered plot.',
     requires: ['pump'],
   },
   {
@@ -70,7 +70,7 @@ export const HOME_UPGRADES = [
     emoji: '🧺',
     cost: 90,
     branch: 'Utility',
-    desc: 'The helper turtles sort tools, seeds, and shiny scraps beside your storage chest.',
+    desc: 'Sorts your stored items and adds Store All for your backpack. Materials and tools stay in their pouches.',
     requires: ['turtleCove'],
   },
   {
@@ -86,6 +86,10 @@ export const HOME_UPGRADES = [
   },
 ];
 
+HOME_UPGRADES.push(
+  { id: 'sprinkler', flag: 'hasSprinkler', name: 'Shell-crew Sprinkler', emoji: '💧', cost: 120, branch: 'Farm', desc: 'Waters growing crops each morning and new seeds immediately.', requires: ['turtleCove'] },
+  { id: 'extraPlots', flag: 'hasExtraPlots', name: 'Four Extra Plots', emoji: '🌱', cost: 100, branch: 'Farm', desc: 'Adds a fourth farm row without disturbing your crops.', requires: [] },
+);
 const HOME_UPGRADE_BY_ID = new Map(HOME_UPGRADES.map(upgrade => [upgrade.id, upgrade]));
 
 function ownsHomeUpgrade(game, upgrade) {
@@ -314,6 +318,7 @@ export const ShopMethods = {
       if (btn && !btn.disabled) btn.addEventListener('click', () => this.purchaseHomeUpgrade(upgrade.id));
       list.appendChild(card);
     });
+    this.renderDecorStore(list);
   },
 
   purchaseHomeUpgrade(upgradeId) {
@@ -330,6 +335,10 @@ export const ShopMethods = {
 
     this.player.pebbles -= upgrade.cost;
     this[upgrade.flag] = true;
+    if (upgrade.id === 'pump') this.recordProgress('pump');
+    if (['sprinkler','extraPlots'].includes(upgrade.id)) this.recordProgress('farmhelp');
+    this._applyHomeFarmState();
+    if (upgrade.id === 'sprinkler') this._serviceFarmHelpers(true);
     invalidateHomeInteriorCache(this);
     this._applyHomeUpgradeState?.();
 
@@ -406,6 +415,7 @@ export const ShopMethods = {
       }
       if (itemId === 'rod') {
         this.player.hasRod = true;
+        this.recordProgress('rod');
         this.showAlert('🎣 Fishing Rod! Stand at the water\'s edge and press Action to cast.');
       }
       if (itemId === 'backpack') {

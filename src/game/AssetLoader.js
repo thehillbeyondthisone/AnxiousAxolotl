@@ -82,11 +82,8 @@ import premiumFrogUrl from '../assets/PremiumPack/Frog/frog_spritesheet.png';
 import premiumBigFishUrl from '../assets/PremiumPack/Ocean/big_fish_2_swimming_in_cirkels.png';
 import premiumFishingSplashUrl from '../assets/PremiumPack/Ocean/fishing_water_splash_frames_and_rod.png';
 
-function loadImage(src) {
-  const img = new Image();
-  img.src = src;
-  return img;
-}
+import { loadImage as registeredImage } from './ImageRegistry.js';
+const loadImage = src => registeredImage(src, { group: 'core' });
 
 export const Sprites = {
   objects: loadImage(objectsUrl),

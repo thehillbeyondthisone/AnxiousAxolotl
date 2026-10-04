@@ -34,7 +34,7 @@ function furnitureSheet(piece, roomStyle) {
 }
 
 /** Collision footprints for decorative objects that are drawn separately. */
-function decorationCollider(d) {
+export function decorationCollider(d) {
   if (d.type === 'furniture') {
     const piece = FURNITURE[d.piece];
     if (!piece || piece.wall) return null;
@@ -288,7 +288,7 @@ export class World {
     if (this.isInterior) {
       this.decorations.forEach((d) => {
         const box = decorationCollider(d);
-        if (box) this.colliders.push({ ...box, type: 'decorBlock', collisionOnly: true });
+        if (box) this.colliders.push({ ...box, type: 'decorBlock', collisionOnly: true, homeId: d.homeId });
       });
       this.containers.forEach((c) => {
         this.colliders.push({

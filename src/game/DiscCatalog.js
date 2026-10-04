@@ -27,6 +27,13 @@ export const DISC_CATALOG = [
     desc: 'Relax and decorate a tiny room to attract cute cats.',
     accent: '#f472b6',
   },
+  {
+    id: 'nautical_solitaire',
+    name: 'Nautical Solitaire',
+    cost: 0,
+    desc: 'A harbor-themed solitaire disc using the old nautical card set.',
+    accent: '#0ea5e9',
+  },
 ];
 
 export function findDisc(id) {

@@ -4,6 +4,7 @@
  * gap in the south wall holds a '__exit' transition.
  */
 
+import { applyLayout } from './HomeLayout.js';
 const TILE_FLOOR = 8;
 const TILE_LAKE = 0;
 
@@ -359,7 +360,12 @@ export function buildInterior(box, options = {}) {
     decorations.push({ type: 'potted', x: W - ts * 1.2 * sx, y: ts * 2 * sy, v: Math.floor(Math.random() * 2) });
   }
 
-  return {
+  if (isHome) {
+    decorations.forEach((d,i) => { if ((d.type === 'furniture' && !['fridge','stove'].includes(d.piece)) || d.type === 'smallplant') d.homeId = 'starter-' + i; });
+    decorations.forEach(d => { if (['cattree','turtlecove','shellhelpers','sunpatch'].includes(d.type)) d.homeId = 'home-' + d.type; });
+    rugs.forEach((d,i) => { d.homeId = 'starter-rug-' + i; });
+  }
+  return applyLayout({
     tileSize: ts,
     cols,
     rows,
@@ -384,5 +390,5 @@ export function buildInterior(box, options = {}) {
     seed: Math.floor(Math.random() * 1e9),
     areaType: 'interior',
     areaName: isHome ? 'Your Cabin' : (isCafe ? 'Resort Cafe' : 'Cozy Cabin'),
-  };
+  }, options.furnitureLayout, options.ownedFurniture);
 }

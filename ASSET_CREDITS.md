@@ -9,6 +9,7 @@ This game incorporates third-party art. These assets remain their creators' work
 - **ELR Pet Kibbles N Bowls Free:** pet props. See the [included license](more%20assets/pet%20assets/ELR_Pet_Kibbles_N_Bowls_Free/ELR_Pet_Kibble_Bowls_Free_License.txt).
 - **CatRoomFree, AllCatsDemo, RetroCatsFree, and CatMaterialsDEMO:** bundled cat-room and toy art used by the committed disc game. The local copies did not include a separate license document; no broader reuse permission is asserted here.
 - **Bundled sound effects and Anxious Axolotl music:** retained from the existing game. The local copies did not include separate author/rights documentation; no broader reuse permission is asserted here.
+- **Axolotl Theme / Plucked Victory:** supplied by the project owner as the new title-screen and gameplay music, respectively.
 - **Axel menu mascot:** custom SVG added for this game's art/control polish with Codex assistance.
 
 Use this repository to play and develop the game. Do not assume permission to republish individual third-party assets, use them for AI training, or monetize the game from this credits file.

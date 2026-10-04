@@ -10,6 +10,7 @@
  * substitutes it with the particle's fading alpha each frame.
  */
 import { CROP_TYPES, CROP_ORDER } from './AssetLoader.js';
+import { advanceCrops, serviceCrops } from './FarmState.js';
 
 export const FarmMethods = {
   /** Cycle which crop the next 'plant' interaction will sow — bound to the 'C' key near a plot. */
@@ -86,7 +87,7 @@ export const FarmMethods = {
       const sownDef = CROP_TYPES[this.selectedCropType] || CROP_TYPES.sproutroot;
       plot.crop = sownDef.id;
       plot.stage = 0;
-      plot.watered = false;
+      plot.watered = !!this.hasSprinkler;
       plot.plantedDay = this.dayCount;
       this.farmSeedCount--;
       this.playSound('collect');
@@ -99,6 +100,7 @@ export const FarmMethods = {
       this.spawnFloater(plot.x + plot.w / 2, plot.y - 4, 'Watered', '#7dd3fc');
     } else if (action === 'harvest') {
       const cropDef = CROP_TYPES[plot.crop] || CROP_TYPES.sproutroot;
+      this.recordProgress('harvest');
       const crop = { name: cropDef.name, type: 'food', value: cropDef.value, emoji: cropDef.emoji, qty: 1 };
       if (!this.player.addItem(crop)) {
         this.world.items.push({
@@ -239,15 +241,18 @@ export const FarmMethods = {
     }
   },
 
-  _advanceFarmDay() {
+  _advanceFarmDay({ serviceHelpers = true } = {}) {
     if (!this.homeFarmState && this.world?.farmPlots?.length) this._saveHomeFarmState();
     const plots = this.world?.areaType === 'woods' ? this.world.farmPlots : this.homeFarmState;
     if (!plots) return;
-    plots.forEach(plot => {
-      if (!plot.crop) return;
-      if (plot.watered) plot.stage = Math.min(3, (plot.stage || 0) + 1);
-      plot.watered = false;
-    });
+    advanceCrops(plots);
+    if (serviceHelpers) this._serviceFarmHelpers();
+    if (this.world?.areaType === 'woods') this._saveHomeFarmState();
+  },
+
+  _serviceFarmHelpers(force = false) {
+    const plots = this.world?.areaType === 'woods' ? this.world.farmPlots : this.homeFarmState;
+    this.helperServicedDay = serviceCrops(plots, { day: this.dayCount, servicedDay: this.helperServicedDay, turtleCove: this.hasTurtleCove, sprinkler: this.hasSprinkler, force });
     if (this.world?.areaType === 'woods') this._saveHomeFarmState();
   },
 
@@ -285,6 +290,11 @@ export const FarmMethods = {
 
   _applyHomeFarmState() {
     if (this.world?.areaType !== 'woods' || !this.world.farmPlots?.length) return;
+    this.world.farmPlots = this.world.farmPlots.filter(p => this.hasExtraPlots || !p.id.startsWith('home-3-'));
+    if (this.hasExtraPlots && !this.world.farmPlots.some(p => p.id.startsWith('home-3-'))) {
+      const row = this.world.farmPlots.filter(p => p.id.startsWith('home-2-'));
+      row.forEach(p => this.world.farmPlots.push({ ...p, id: p.id.replace('home-2-','home-3-'), y: p.y + 64, crop: null, stage: 0, watered: false, plantedDay: 0 }));
+    }
     if (!this.homeFarmState) {
       this._saveHomeFarmState();
       return;

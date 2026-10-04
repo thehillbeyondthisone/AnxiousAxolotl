@@ -67,6 +67,7 @@ export class Pet {
     // true = left behind at the home cabin (wearing the Air Helmet to
     // survive the flooded interior) instead of following the player
     this.atHome = false;
+    this.lastPlayRewardDay = 0;
 
     // Timers
     this._pebbleTimer = 30 + Math.random() * 30; // seconds until it may fetch a pebble
@@ -429,6 +430,8 @@ export class Pet {
       kind: this.kind, name: this.name,
       hunger: this.hunger, happiness: this.happiness,
       atHome: this.atHome,
+      lastPlayRewardDay: this.lastPlayRewardDay,
+      pebbleTimer: this._pebbleTimer,
     };
   }
 
@@ -438,6 +441,8 @@ export class Pet {
     if (typeof data.hunger === 'number') p.hunger = data.hunger;
     if (typeof data.happiness === 'number') p.happiness = data.happiness;
     p.atHome = !!data.atHome;
+    p.lastPlayRewardDay = data.lastPlayRewardDay || 0;
+    if (typeof data.pebbleTimer === 'number') p._pebbleTimer = data.pebbleTimer;
     return p;
   }
 }

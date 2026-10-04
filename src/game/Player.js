@@ -213,6 +213,7 @@ export class Player {
   /** Add a stack of crafting material to the pouch. */
   addMaterial(id, n = 1) {
     this.materials[id] = (this.materials[id] || 0) + n;
+    this.onInventoryChange?.();
   }
 
   /** Spend materials (assumes availability was checked). */
@@ -249,10 +250,12 @@ export class Player {
     const existing = this.items.find(i => stackKey(i) === key);
     if (existing) {
       existing.qty += amount;
+      this.onInventoryChange?.();
       return true;
     }
     if (this.items.length < this.backpackCapacity) {
       this.items.push({ ...item, qty: amount });
+      this.onInventoryChange?.();
       return true;
     }
     return false;
@@ -269,6 +272,7 @@ export class Player {
     const taken = Math.min(amount, item.qty || 1);
     item.qty = (item.qty || 1) - taken;
     if (item.qty <= 0) this.items.splice(index, 1);
+    this.onInventoryChange?.();
     return { ...item, qty: taken };
   }
 

@@ -14,8 +14,8 @@ const wavUrls = import.meta.glob('../assets/Audio/*.wav', {
   eager: true, query: '?url', import: 'default'
 });
 
-import titleUrl from '../assets/Audio/anxious_axolotl.mp3';
-import gameplayUrl from '../assets/Audio/anxious_axolotl_gameplay.m4a';
+import titleUrl from '../assets/Audio/Axolotl Theme.mp3';
+import gameplayUrl from '../assets/Audio/Plucked Victory.mp3';
 
 /** Map a logical sound name to one or more sample file stems (random pick). */
 const SFX_GROUPS = {

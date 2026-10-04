@@ -1,4 +1,9 @@
 node_modules/
 dist/
 .vite/
+.art-control-work/
 *.log
+.claude/settings.local.json
+
+.local-artifacts/
+.DS_Store

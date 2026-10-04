@@ -11,7 +11,7 @@ export class FriendlyUI {
     document.getElementById('btn-controls-help').addEventListener('click', () => this.openHelp());
     document.getElementById('btn-close-controls').addEventListener('click', () => this.closeHelp());
     document.getElementById('btn-pause').addEventListener('click', () => {
-      if (['playing', 'minigame'].includes(game.state)) game.openSettings();
+      if (['playing', 'minigame', 'disc'].includes(game.state)) game.openSettings();
     });
     document.getElementById('btn-minigame-back').addEventListener('click', () => {
       if (game.state === 'minigame') { game.input.reset(); game._endMinigame('cancelled'); }
@@ -55,12 +55,12 @@ export class FriendlyUI {
     // Freeze safely on backgrounding and orientation changes; never leave
     // a child dehydrating behind the rotate-device screen.
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden && ['playing', 'minigame'].includes(game.state)) game.openSettings();
+      if (document.hidden && ['playing', 'minigame', 'disc'].includes(game.state)) game.openSettings();
     });
   }
 
   openHelp() {
-    if (!['playing', 'minigame'].includes(this.game.state)) return;
+    if (!['playing', 'minigame', 'disc'].includes(this.game.state)) return;
     this.returnState = this.game.state;
     this.game.input.reset();
     this.game.state = 'help';
@@ -87,7 +87,7 @@ export class FriendlyUI {
     }
     if (!game.input.canMove()) game.input.resetMovement();
     // The orientation prompt applies only to small portrait devices.
-    if (window.matchMedia('(orientation: portrait) and (max-width: 820px)').matches && ['playing', 'minigame'].includes(game.state)) game.openSettings();
+    if (window.matchMedia('(orientation: portrait) and (max-width: 820px)').matches && ['playing', 'minigame', 'disc'].includes(game.state)) game.openSettings();
     document.getElementById('btn-minigame-back').classList.toggle('hidden', game.state !== 'minigame');
     const button = document.getElementById('btn-action');
     if (game.state === 'playing') {
