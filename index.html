@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#355c55">
+  <meta name="description" content="Meet Axel! A cozy axolotl adventure with easy touch controls. Swim, explore, collect snacks, and build a little home.">
+  <link rel="icon" href="/src/assets/ui/axel.svg" type="image/svg+xml">
+  <title>Anxious Axolotl - Resort Rogue</title>
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <!-- Main Game Container -->
+  <div id="game-container">
+    <!-- Game Render Canvas -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Fade-to-black transition used when entering/re-entering gameplay -->
+    <div id="game-fade-overlay"></div>
+
+    <!-- === MAIN MENU OVERLAY === -->
+    <div id="main-menu" class="ui-screen active">
+      <div class="menu-content glassmorphism">
+        <div class="logo-area">
+          <img class="axolotl-emblem" src="/src/assets/ui/axel.svg" alt="Axel the pink axolotl" width="96" height="72">
+          <h1>Anxious Axolotl</h1>
+          <p class="subtitle">Resort Rogue</p>
+          <p class="menu-welcome">A little axolotl. A big adventure.</p>
+        </div>
+        
+        <div class="menu-buttons">
+          <button id="btn-start" class="btn-primary">Let's Play</button>
+          <button id="btn-how-to" class="btn-secondary">How to Play</button>
+        </div>
+
+        <div class="credits">Created with care for Android & Web</div>
+        <div class="credits credits-assets">Environment art from Sprout Lands, by Cup Nooble</div>
+      </div>
+    </div>
+
+    <div id="controls-help" class="ui-screen hidden" role="dialog" aria-modal="true" aria-labelledby="controls-title">
+      <div class="menu-content glassmorphism controls-card">
+        <img src="/src/assets/ui/axel.svg" alt="" class="help-mascot" width="80" height="60">
+        <h2 id="controls-title">Meet Axel!</h2>
+        <p class="help-intro">You only need two thumbs.</p>
+        <div class="control-lessons">
+          <div class="control-lesson"><span class="lesson-picture">↔</span><div><h3>Slide to move</h3><p>Slide the stick on the left. Let go to stop.</p></div></div>
+          <div class="control-lesson"><span class="lesson-picture">◎</span><div><h3>Tap to do things</h3><p>The big right button tells you what to do. Walk closer if it says “Go closer”.</p></div></div>
+          <div class="control-lesson"><span class="lesson-picture water-picture">≈</span><div><h3>Water is your friend</h3><p>Swim to fill your blue water bar. Hide in bushes when guards come near.</p></div></div>
+        </div>
+        <p class="keyboard-help">Keyboard: arrows or WASD to move · E or Space to act</p>
+        <button id="btn-close-controls" class="btn-primary">Let's go!</button>
+      </div>
+    </div>
+
+    <!-- === HOW TO PLAY SCREEN === -->
+    <div id="how-to-play-screen" class="ui-screen hidden">
+      <div class="menu-content glassmorphism long-content">
+        <h2>How to Play</h2>
+        
+        <div class="guide-sections">
+          <div class="guide-item">
+            <span class="guide-icon">💦</span>
+            <div>
+              <h3>Keep Hydrated!</h3>
+              <p>Your <span class="hl-special">hydration</span> drains on dry land. Dive into <span class="hl-special">lakes, pools, puddles</span>, or drink soda to stay wet.</p>
+            </div>
+          </div>
+          
+          <div class="guide-item">
+            <span class="guide-icon">🕵️‍♂️</span>
+            <div>
+              <h3>Be Stealthy</h3>
+              <p>Avoid the vision cones of <span class="hl-danger">lifeguards</span> and guests. Hide in <span class="hl-food">bushes</span> or coolers when they get close.</p>
+            </div>
+          </div>
+
+          <div class="guide-item">
+            <span class="guide-icon">🍕</span>
+            <div>
+              <h3>Steal & Sell</h3>
+              <p>Snatch <span class="hl-food">food</span> from coolers and trash. Eat it for speed boosts, or sell it to the Sewer Rat for <span class="hl-pebble">Shiny Pebbles</span>!</p>
+            </div>
+          </div>
+
+          <div class="guide-item">
+            <span class="guide-icon">🪖</span>
+            <div>
+              <h3>Get the Helmet!</h3>
+              <p>Save up enough <span class="hl-pebble">Pebbles</span> to buy the ultimate upgrade: a <span class="hl-special">Water Helmet</span> that lets you walk on land forever!</p>
+            </div>
+          </div>
+        </div>
+
+        <button id="btn-back-menu" class="btn-secondary">Back to Menu</button>
+      </div>
+    </div>
+
+    <!-- === IN-GAME HUD (Heads-Up Display) === -->
+    <div id="game-hud" class="hidden">
+      <!-- Top Left: Stats -->
+      <div class="hud-stats-group">
+        <!-- Hydration Bar -->
+        <div class="hud-item glass-hud hydration-hud">
+          <span id="hydration-icon" class="hud-icon">💧</span>
+          <div class="bar-container">
+            <div id="hydration-bar-fill" style="width: 100%;"></div>
+          </div>
+          <span id="hydration-text" class="hud-value">100%</span>
+        </div>
+
+        <!-- Oxygen Bar (dive mode only) -->
+        <div id="oxygen-hud" class="hud-item glass-hud oxygen-hud hidden">
+          <span class="hud-icon">🫧</span>
+          <div class="bar-container">
+            <div id="oxygen-bar-fill" style="width: 100%;"></div>
+          </div>
+          <span id="oxygen-text" class="hud-value">60s</span>
+        </div>
+
+        <!-- Money Counter -->
+        <div class="hud-item glass-hud pebbles-hud">
+          <span id="pebble-icon" class="hud-icon">✨</span>
+          <span id="pebble-count" class="hud-value">0</span>
+        </div>
+
+        <!-- Bottle Caps Counter -->
+        <div class="hud-item glass-hud pebbles-hud">
+          <span id="bottlecaps-icon" class="hud-icon">♻️</span>
+          <span id="bottlecaps-count" class="hud-value">0</span>
+        </div>
+
+        <!-- Day / time-of-day clock -->
+        <div class="hud-item glass-hud clock-hud">
+          <div class="clock-row">
+            <span id="clock-icon" class="hud-icon">☀️</span>
+            <span id="clock-text" class="hud-value">Day 1</span>
+          </div>
+          <div class="clock-track"><div id="clock-fill" class="clock-fill"></div></div>
+        </div>
+
+        <!-- Water Helmet indicator (compact) -->
+        <div id="helmet-indicator" class="hud-item glass-hud helmet-chip hidden" title="Water Helmet active — no dehydration">
+          <span class="hud-icon">🪖</span>
+        </div>
+
+        <!-- Active rat quest -->
+        <div id="quest-chip" class="hud-item glass-hud quest-hud hidden">
+          <span id="quest-icon" class="hud-icon">📜</span>
+          <span id="quest-text" class="hud-value"></span>
+        </div>
+
+        <!-- Adopted pet companion status -->
+        <div id="pet-chip" class="hud-item glass-hud pet-hud hidden" title="Your companion">
+          <span id="pet-chip-icon" class="hud-icon">🐶</span>
+          <span id="pet-chip-mood" class="hud-value">😻</span>
+        </div>
+      </div>
+
+      <!-- Minimap (bottom-right corner) -->
+      <div id="minimap-container" class="glass-hud">
+        <div class="minimap-header">
+          <div id="area-badge-sub">Nearest: Rat</div>
+          <div id="area-badge">📍 Resort Campsite</div>
+          <button id="btn-minimap-toggle" title="Toggle minimap (M)">▾</button>
+        </div>
+        <canvas id="minimap-canvas" width="180" height="140"></canvas>
+      </div>
+
+      <!-- Top Right: Menu/Shop Quick Buttons -->
+      <div class="hud-actions-group">
+        <button id="btn-open-backpack-hud" class="btn-hud btn-bag" aria-label="Open bag">🎒 Bag <span id="backpack-count">0/3</span></button>
+        <details id="more-controls">
+          <summary class="btn-hud" aria-label="More game menus">More ▾</summary>
+          <div class="more-panel">
+        <button id="btn-open-shop" class="btn-hud"><span id="nav-icon-shop" class="nav-icon">🛒</span> Shop</button>
+        <button id="btn-open-achievements" class="btn-hud"><span id="nav-icon-achievements" class="nav-icon">🏆</span> Awards</button>
+        <button id="btn-open-wardrobe" class="btn-hud"><span id="nav-icon-wardrobe" class="nav-icon">👕</span> Outfits</button>
+        <button id="btn-open-pet" class="btn-hud"><span id="nav-icon-pet" class="nav-icon">🐾</span> Pets</button>
+        <button id="btn-open-dev" class="btn-hud btn-dev"><span id="nav-icon-dev" class="nav-icon">🔧</span> Dev</button>
+          </div>
+        </details>
+        <button id="btn-pause" class="btn-hud" aria-label="Pause game">Ⅱ Pause</button>
+        <button id="btn-controls-help" class="btn-hud" aria-label="Help with controls">? Help</button>
+      </div>
+
+      <!-- Achievement unlock toast (top-center, auto-hides) -->
+      <div id="achievement-toast">
+        <span id="achv-toast-icon">🏆</span>
+        <div class="achv-toast-text">
+          <div class="achv-toast-label">Achievement Unlocked</div>
+          <div id="achv-toast-name">—</div>
+        </div>
+      </div>
+
+      <!-- Center Top: Guard Alert/Notice Bar -->
+      <div id="alert-banner" class="alert-banner hidden">
+        <span class="alert-text">⚠️ ESCAPING GUARDS! ⚠️</span>
+      </div>
+
+      <div id="gate-notice" class="gate-notice hidden">
+        <div class="gate-notice-icon">!</div>
+        <div class="gate-notice-copy">
+          <div class="gate-notice-title">Path Blocked</div>
+          <div class="gate-notice-text">You need one more thing before heading this way.</div>
+        </div>
+      </div>
+
+      <!-- Bottom Controls (Touch Joystick & Actions) -->
+      <div id="mobile-controls">
+        <!-- Left: Virtual Joystick -->
+        <div id="joystick-zone">
+          <div id="joystick-base" aria-label="Slide to move Axel">
+            <span class="stick-arrows" aria-hidden="true">✥</span>
+            <div id="joystick-handle"></div>
+          </div>
+          <span class="control-caption">Slide to move</span>
+        </div>
+
+        <!-- Right: Action Buttons -->
+        <div id="action-zone">
+          <button id="btn-action" class="btn-action-primary hidden">
+            <span id="btn-action-icon">🎯</span>
+            <span id="btn-action-label">Interact</span>
+          </button>
+          <span class="control-caption">Tap to act</span>
+          <button id="btn-knockout" class="btn-action-secondary hidden" title="Knock out a nearby guard (Q)">
+            <span>🏏</span>
+          </button>
+        </div>
+      </div>
+      <p id="play-coach" class="play-coach">Slide to move · Swim to fill your water bar</p>
+      <button id="btn-minigame-back" class="btn-hud hidden">← Stop</button>
+      <div id="action-bar" class="action-bar"></div>
+    </div>
+
+    <!-- === SHOP / UPGRADE MENU === -->
+    <div id="shop-overlay" class="ui-screen hidden">
+      <div class="menu-content glassmorphism shop-panel">
+        <div class="shop-header">
+          <h2 id="shop-title">🛒 Sewer Rat's Secret Shop</h2>
+          <div class="shop-pebbles">
+            <span>✨ Pebbles: </span>
+            <span id="shop-pebbles-value">0</span>
+          </div>
+        </div>
+
+        <div class="shop-items-container">
+          <!-- Item 1: Soggy Booties -->
+          <div class="shop-card" data-item="booties">
+            <div class="shop-card-icon">👟</div>
+            <div class="shop-card-info">
+              <h3>Soggy Booties</h3>
+              <p>Increases movement speed on land by 25%.</p>
+              <div class="shop-card-price">✨ 40 Pebbles</div>
+            </div>
+            <button class="btn-buy" id="btn-buy-booties">Buy</button>
+          </div>
+
+          <!-- Item 2: Canteen -->
+          <div class="shop-card" data-item="canteen">
+            <div class="shop-card-icon">🧪</div>
+            <div class="shop-card-info">
+              <h3>Hydration Canteen</h3>
+              <p>Carry backup water. Refills hydration automatically once when empty.</p>
+              <div class="shop-card-price">✨ 80 Pebbles</div>
+            </div>
+            <button class="btn-buy" id="btn-buy-canteen">Buy</button>
+          </div>
+
+          <!-- Item: Fishing Rod -->
+          <div class="shop-card" data-item="rod">
+            <div class="shop-card-icon">🎣</div>
+            <div class="shop-card-info">
+              <h3>Fishing Rod</h3>
+              <p>Cast from the water's edge and reel in fish to sell to the rat.</p>
+              <div class="shop-card-price">✨ 60 Pebbles</div>
+            </div>
+            <button class="btn-buy" id="btn-buy-rod">Buy</button>
+          </div>
+
+          <!-- Item 3: Backpack Expansion -->
+          <div class="shop-card" data-item="backpack">
+            <div class="shop-card-icon">🎒</div>
+            <div class="shop-card-info">
+              <h3>Sturdy Backpack</h3>
+              <p>Increases carrying capacity to 6 items.</p>
+              <div class="shop-card-price">✨ 120 Pebbles</div>
+            </div>
+            <button class="btn-buy" id="btn-buy-backpack">Buy</button>
+          </div>
+
+          <!-- Item 4: Water Helmet -->
+          <div class="shop-card premium" data-item="helmet">
+            <div class="shop-card-icon">🪖</div>
+            <div class="shop-card-info">
+              <h3>Water Helmet</h3>
+              <p>A full helmet of fresh lake water. Stops dehydration completely!</p>
+              <div class="shop-card-price">✨ 250 Pebbles</div>
+            </div>
+            <button class="btn-buy" id="btn-buy-helmet">Buy</button>
+          </div>
+
+          <!-- Item 5: Air Helmet -->
+          <div class="shop-card premium" data-item="airhelmet">
+            <div class="shop-card-icon">🫧</div>
+            <div class="shop-card-info">
+              <h3>Air Helmet</h3>
+              <p>Lets a companion breathe safely if you leave them at the flooded home cabin.</p>
+              <div class="shop-card-price">✨ 150 Pebbles</div>
+            </div>
+            <button class="btn-buy" id="btn-buy-airhelmet">Buy</button>
+          </div>
+
+          <!-- Item 6: Lockpick (consumable, re-buyable) -->
+          <div class="shop-card" data-item="lockpick">
+            <div class="shop-card-icon">🗝️</div>
+            <div class="shop-card-info">
+              <h3>Lockpick <span class="tool-owned">x<span id="lockpick-owned-count">0</span></span></h3>
+              <p>Pops one locked container — snaps after one use, good or bad outcome. Buy more anytime.</p>
+              <div class="shop-card-price">✨ 25 Pebbles</div>
+            </div>
+            <button class="btn-buy" id="btn-buy-lockpick">Buy</button>
+          </div>
+
+          <!-- Item 7: Scarecrow (protects home farm crops from crows) -->
+          <div class="shop-card" data-item="scarecrow">
+            <div class="shop-card-icon">🎃</div>
+            <div class="shop-card-info">
+              <h3>Scarecrow</h3>
+              <p>Stands watch over your home farm — crows won't dare touch a crop while it's up.</p>
+              <div class="shop-card-price">✨ 70 Pebbles</div>
+            </div>
+            <button class="btn-buy" id="btn-buy-scarecrow">Buy</button>
+          </div>
+        </div>
+
+        <div class="shop-footer">
+          <button id="btn-close-shop" class="btn-secondary">Resume Game</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- === SHOP COMPUTER / DISC DRIVE === -->
+    <div id="computer-overlay" class="ui-screen hidden">
+      <div class="menu-content glassmorphism shop-panel computer-panel">
+        <div class="shop-header">
+          <h2>▣ Shop Computer</h2>
+          <div class="shop-pebbles">
+            <span>✨ Pebbles: </span>
+            <span id="computer-pebbles-value">0</span>
+          </div>
+        </div>
+        <div class="computer-shell">
+          <div class="computer-crt">
+            <div class="computer-scanline"></div>
+            <div class="computer-prompt">A:\DISCBOOT</div>
+            <h3 id="computer-host-name">Unknown Shop</h3>
+            <p>Insert a disc, boot a tiny world, eject before anyone asks why the shop computer has games.</p>
+          </div>
+          <div class="computer-columns">
+            <section>
+              <h3>Installed Discs</h3>
+              <div id="computer-owned-discs" class="computer-disc-list"></div>
+            </section>
+            <section>
+              <h3>Disc Shelf</h3>
+              <div id="computer-store-discs" class="computer-disc-list"></div>
+            </section>
+          </div>
+        </div>
+        <div class="shop-footer">
+          <button id="btn-close-computer" class="btn-secondary">Leave Computer</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- === RACCOON SHOP OVERLAY (Town) === -->
+    <div id="raccoon-shop-overlay" class="ui-screen hidden">
+      <div class="menu-content glassmorphism shop-panel">
+        <div class="shop-header">
+          <h2>🦝 Raccoon Shop</h2>
+          <div class="shop-pebbles">
+            <span>♻️ Bottle Caps: </span>
+            <span id="raccoon-caps-value">0</span>
+          </div>
+        </div>
+        <p class="pet-blurb">The raccoon trades recycled Bottle Caps for today's little treasures.</p>
+        <div id="raccoon-stock-list" class="shop-items-container"></div>
+        <div class="shop-footer">
+          <button id="btn-close-raccoonshop" class="btn-secondary">Resume Game</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- === HOME UPGRADE SHOP OVERLAY (Whispering Woods) === -->
+    <div id="home-upgrade-overlay" class="ui-screen hidden">
+      <div class="menu-content glassmorphism shop-panel home-upgrade-panel">
+        <div class="shop-header">
+          <h2>🐢 Tidepool Homeworks</h2>
+          <div class="shop-pebbles">
+            <span>✨ Pebbles: </span>
+            <span id="home-upgrade-pebbles-value">0</span>
+          </div>
+        </div>
+        <p class="pet-blurb">Baby turtles handle the damp jobs first, then branch into cozy cabin projects.</p>
+        <div id="home-upgrade-path" class="home-upgrade-path"></div>
+        <div id="home-upgrade-list" class="shop-items-container"></div>
+        <div class="shop-footer">
+          <button id="btn-close-home-upgrades" class="btn-secondary">Resume Game</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- === ACHIEVEMENTS OVERLAY === -->
+    <div id="achievements-overlay" class="ui-screen hidden">
+      <div class="menu-content glassmorphism shop-panel">
+        <div class="shop-header">
+          <h2>🏆 Achievements</h2>
+          <div class="shop-pebbles" id="achv-progress">0 / 0 unlocked</div>
+        </div>
+        <div id="achv-grid" class="achv-grid"></div>
+        <div class="shop-footer">
+          <button id="btn-close-achievements" class="btn-secondary">Resume Game</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- === WARDROBE OVERLAY (cosmetic skins) === -->
+    <div id="wardrobe-overlay" class="ui-screen hidden">
+      <div class="menu-content glassmorphism shop-panel">
+        <div class="shop-header">
+          <h2>👕 Wardrobe</h2>
+        </div>
+        <div id="wardrobe-grid" class="achv-grid"></div>
+        <div class="shop-footer">
+          <button id="btn-close-wardrobe" class="btn-secondary">Resume Game</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- === COMPANION OVERLAY (view/feed/play with tamed pets) === -->
+    <div id="pet-overlay" class="ui-screen hidden">
+      <div class="menu-content glassmorphism shop-panel">
+        <div class="shop-header">
+          <h2>🐾 Companions</h2>
+        </div>
+
+        <div id="pet-empty-view" class="hidden">
+          <p class="pet-blurb">You haven't tamed a companion yet. A wild puppy and kitten wander Whispering Woods — feed them the right snack to earn their trust.</p>
+        </div>
+        <div id="pet-care-list" class="shop-items-container"></div>
+
+        <div class="shop-footer">
+          <button id="btn-close-pet" class="btn-secondary">Resume Game</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- === CABIN STORAGE OVERLAY (Home Cabin) === -->
+    <div id="cabin-storage-overlay" class="ui-screen hidden">
+      <div class="menu-content glassmorphism shop-panel storage-panel">
+        <div class="shop-header">
+          <h2>📦 Storage Shed</h2>
+        </div>
+        <div class="storage-columns">
+          <div class="storage-column">
+            <h3 class="bp-section-title">Backpack</h3>
+            <div id="cabin-backpack-list" class="inventory-grid storage-grid" aria-label="Backpack item slots"></div>
+          </div>
+          <div class="storage-column">
+            <h3 class="bp-section-title">Stored</h3>
+            <div id="cabin-storage-list" class="inventory-grid storage-grid" aria-label="Storage shed item slots"></div>
+          </div>
+        </div>
+        <div class="shop-footer">
+          <button id="btn-close-cabin-storage" class="btn-secondary">Resume Game</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- === FISH MARKET OVERLAY (Town) === -->
+    <div id="fish-market-overlay" class="ui-screen hidden">
+      <div class="menu-content glassmorphism shop-panel">
+        <div class="shop-header">
+          <h2>🐟 Fish Market</h2>
+          <div class="shop-pebbles">
+            <span>✨ Pebbles: </span>
+            <span id="fishmarket-pebbles-value">0</span>
+          </div>
+        </div>
+
+        <div id="fishmarket-catch-list" class="shop-items-container"></div>
+        <div class="shop-footer" style="padding-top: 4px;">
+          <button id="btn-sell-fish" class="btn-primary" disabled>Sell All Fish</button>
+        </div>
+
+        <div class="shop-header" style="margin-top: 14px;">
+          <h2 style="font-size: 1.1rem;">🧰 Tackle Shop</h2>
+        </div>
+        <div class="shop-items-container">
+          <div class="shop-card" data-item="bait">
+            <div class="shop-card-icon">🪱</div>
+            <div class="shop-card-info">
+              <h3>Fishing Bait <span id="bait-owned-badge" style="opacity:0.7;"></span></h3>
+              <p>Guarantees an instant bite on your very next cast. Stacks up.</p>
+              <div class="shop-card-price">✨ 15 Pebbles</div>
+            </div>
+            <button class="btn-buy" id="btn-buy-bait">Buy</button>
+          </div>
+
+          <div class="shop-card premium" data-item="sturdyline">
+            <div class="shop-card-icon">🧵</div>
+            <div class="shop-card-info">
+              <h3>Braided Line</h3>
+              <p>Permanently widens the catch bar — much easier reeling on every cast.</p>
+              <div class="shop-card-price">✨ 100 Pebbles</div>
+            </div>
+            <button class="btn-buy" id="btn-buy-sturdyline">Buy</button>
+          </div>
+        </div>
+
+        <div class="shop-footer">
+          <button id="btn-close-fishmarket" class="btn-secondary">Leave Market</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- === BACKPACK INVENTORY OVERLAY === -->
+    <div id="backpack-overlay" class="ui-screen hidden">
+      <div class="menu-content glassmorphism shop-panel backpack-panel inventory-sheet">
+        <div class="shop-header inventory-titlebar">
+          <h2>🎒 Backpack Inventory</h2>
+          <div class="shop-pebbles inventory-wallet">
+            <span>✨ <b id="backpack-pebbles">0</b></span>
+            <span>♻️ <b id="backpack-bottlecaps">0</b></span>
+            <span>🎒 <b id="backpack-item-count">0/3</b></span>
+          </div>
+        </div>
+
+        <div class="inventory-body">
+          <aside class="inventory-profile">
+            <div class="inventory-avatar" aria-hidden="true">🫧</div>
+            <div class="inventory-name">Axel</div>
+            <div class="inventory-stat"><span>Hydration</span><b id="backpack-hydration">100%</b></div>
+            <div class="inventory-stat"><span>Area</span><b id="backpack-area">Camp</b></div>
+            <div class="inventory-stat"><span>Bag</span><b id="backpack-bag-size">6 slots</b></div>
+          </aside>
+
+          <main class="inventory-main">
+            <div id="backpack-items-list" class="inventory-grid" aria-label="Backpack item slots">
+              <!-- Populated dynamically via JS -->
+            </div>
+          </main>
+
+          <aside class="inventory-side">
+            <section>
+              <h3 class="bp-section-title">Tools</h3>
+              <div id="backpack-tools" class="inventory-chip-list"></div>
+            </section>
+            <section>
+              <h3 class="bp-section-title">Materials</h3>
+              <div id="backpack-materials" class="inventory-chip-list"></div>
+            </section>
+          </aside>
+        </div>
+
+        <div class="shop-footer">
+          <button id="btn-close-backpack" class="btn-secondary">Resume Game</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- === SETTINGS / PAUSE MENU === -->
+    <div id="settings-overlay" class="ui-screen hidden">
+      <div class="menu-content glassmorphism shop-panel">
+        <div class="shop-header">
+          <h2>Taking a break</h2>
+        </div>
+
+        <div class="settings-sections">
+          <!-- Audio -->
+          <div class="settings-section">
+            <h3>🔊 Audio</h3>
+            <div class="settings-slider">
+              <label for="vol-master">All sounds</label>
+              <input type="range" id="vol-master" min="0" max="100" value="80" step="5">
+              <span id="vol-master-val">80%</span>
+            </div>
+            <div class="settings-slider">
+              <label for="vol-music">Music</label>
+              <input type="range" id="vol-music" min="0" max="100" value="60" step="5">
+              <span id="vol-music-val">60%</span>
+            </div>
+            <div class="settings-slider">
+              <label for="vol-sfx">Game sounds</label>
+              <input type="range" id="vol-sfx" min="0" max="100" value="80" step="5">
+              <span id="vol-sfx-val">80%</span>
+            </div>
+          </div>
+
+          <!-- Interface -->
+          <div class="settings-section">
+            <h3>🎮 Interface</h3>
+            <label class="settings-toggle">
+              <input type="checkbox" id="minimap-default-hidden">
+              <span>Hide minimap by default</span>
+            </label>
+            <div class="settings-slider">
+              <label for="joystick-size">Stick size</label>
+              <input type="range" id="joystick-size" min="70" max="150" value="100" step="5">
+              <span id="joystick-size-val">100%</span>
+            </div>
+          </div>
+
+          <!-- Danger Zone -->
+          <details class="settings-section danger">
+            <summary>Grown-up options</summary>
+            <h3>⚠️ Danger Zone</h3>
+            <p class="settings-warning">This will reset your save file and all upgrades.</p>
+            <button id="btn-reset-save" class="btn-secondary" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4); color: #fca5a5;">Reset All Progress</button>
+          </details>
+        </div>
+
+        <div class="shop-footer">
+          <button id="btn-close-settings" class="btn-primary">Keep playing</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- === INTERACTIVE NPC DIALOGUE OVERLAY === -->
+    <div id="craft-overlay" class="ui-screen hidden">
+      <div class="menu-content glassmorphism shop-panel">
+        <div class="shop-header">
+          <h2>🛠️ Crafting</h2>
+          <div class="shop-pebbles" id="craft-mats-summary">—</div>
+        </div>
+        <div id="craft-recipes" class="shop-items-container long-content"></div>
+        <button id="btn-close-craft" class="btn-secondary">Done</button>
+      </div>
+    </div>
+
+    <div id="dialogue-overlay" class="hidden">
+      <div class="dialogue-box glassmorphism">
+        <div class="dialogue-speaker-img">🐀</div>
+        <div class="dialogue-content">
+          <h4 id="dialogue-speaker-name">Sewer Rat</h4>
+          <p id="dialogue-text">Hey there, little axolotl! Bring me some of that delicious human garbage food from the campground. I'll pay you in Shiny Pebbles!</p>
+          <div id="dialogue-options">
+            <button id="btn-dialogue-action" class="btn-primary">Sell Trash (All)</button>
+            <button id="btn-dialogue-craft" class="btn-secondary">Craft 🛠️</button>
+            <button id="btn-dialogue-close" class="btn-secondary">Bye</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- === GAME OVER OVERLAY === -->
+    <div id="game-over-screen" class="ui-screen hidden">
+      <div class="menu-content glassmorphism">
+        <h1 id="game-over-title">Caught!</h1>
+        <p id="game-over-reason" class="subtitle">A lifeguard found you and put you back in the lake.</p>
+        
+        <div id="run-grade" class="run-grade">B</div>
+
+        <div class="game-over-stats">
+          <div class="stat-box">
+            <span class="stat-label">Pebbles Earned</span>
+            <span id="stat-pebbles-earned" class="stat-value">0</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Food Sold</span>
+            <span id="stat-food-sold" class="stat-value">0</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Time Survived</span>
+            <span id="stat-time-survived" class="stat-value">0:00</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Times Spotted</span>
+            <span id="stat-times-spotted" class="stat-value">0</span>
+          </div>
+        </div>
+
+        <button id="btn-retry" class="btn-primary">Try Again</button>
+      </div>
+    </div>
+
+    <!-- === DEVELOPER MENU OVERLAY === -->
+    <div id="dev-menu" class="ui-screen hidden">
+      <div class="menu-content glassmorphism dev-panel">
+        <div class="shop-header">
+          <h2>🔧 Developer Menu</h2>
+        </div>
+
+        <div class="dev-tab-bar">
+          <button class="dev-tab-btn active" data-tab="gameplay">⚡ Gameplay</button>
+          <button class="dev-tab-btn" data-tab="world">🌍 World</button>
+          <button class="dev-tab-btn" data-tab="farm">🌱 Farm</button>
+          <button class="dev-tab-btn" data-tab="cheats">🎮 Cheats</button>
+          <button class="dev-tab-btn" data-tab="debug">🐞 Debug</button>
+        </div>
+
+        <div class="dev-sections">
+          <!-- === Gameplay tab === -->
+          <div class="dev-tab-panel" data-tab-panel="gameplay">
+            <div class="dev-section">
+              <h3>⚡ Speed & Movement</h3>
+              <div class="dev-slider-row">
+                <label for="dev-player-speed">Player Base Speed</label>
+                <input type="range" id="dev-player-speed" min="80" max="400" value="160" step="10">
+                <span id="dev-player-speed-val" class="dev-val">160</span>
+              </div>
+              <div class="dev-slider-row">
+                <label for="dev-guard-speed">Guard Patrol Speed</label>
+                <input type="range" id="dev-guard-speed" min="20" max="200" value="65" step="5">
+                <span id="dev-guard-speed-val" class="dev-val">65</span>
+              </div>
+              <div class="dev-slider-row">
+                <label for="dev-chase-speed">Guard Chase Speed</label>
+                <input type="range" id="dev-chase-speed" min="60" max="400" value="165" step="5">
+                <span id="dev-chase-speed-val" class="dev-val">165</span>
+              </div>
+              <div class="dev-ratio-display">
+                Speed Ratio (Player/Chase): <strong id="dev-speed-ratio">0.97x</strong>
+              </div>
+            </div>
+
+            <div class="dev-section">
+              <h3>👁️ Guard AI</h3>
+              <div class="dev-slider-row">
+                <label for="dev-vision-dist">Vision Distance</label>
+                <input type="range" id="dev-vision-dist" min="50" max="500" value="220" step="10">
+                <span id="dev-vision-dist-val" class="dev-val">220</span>
+              </div>
+              <div class="dev-slider-row">
+                <label for="dev-vision-fov">Vision FOV (radians)</label>
+                <input type="range" id="dev-vision-fov" min="0.3" max="3.14" value="1.1" step="0.1">
+                <span id="dev-vision-fov-val" class="dev-val">1.1</span>
+              </div>
+              <div class="dev-slider-row">
+                <label for="dev-alert-speed">Alert Fill Speed</label>
+                <input type="range" id="dev-alert-speed" min="20" max="500" value="160" step="10">
+                <span id="dev-alert-speed-val" class="dev-val">160</span>
+              </div>
+            </div>
+
+            <div class="dev-section">
+              <h3>🎯 Minigames</h3>
+              <div class="dev-slider-row">
+                <label for="dev-sweet-spot">Sweet Spot Size (fishing/cooking/lockpicking)</label>
+                <input type="range" id="dev-sweet-spot" min="0.5" max="2" value="1" step="0.1">
+                <span id="dev-sweet-spot-val" class="dev-val">1</span>
+              </div>
+            </div>
+
+            <div class="dev-section">
+              <h3>💧 Hydration</h3>
+              <div class="dev-slider-row">
+                <label for="dev-hydration-drain">Drain Rate (per sec)</label>
+                <input type="range" id="dev-hydration-drain" min="0" max="20" value="4.5" step="0.5">
+                <span id="dev-hydration-drain-val" class="dev-val">4.5</span>
+              </div>
+              <div class="dev-slider-row">
+                <label for="dev-hydration-fill">Fill Rate (per sec)</label>
+                <input type="range" id="dev-hydration-fill" min="5" max="100" value="40" step="5">
+                <span id="dev-hydration-fill-val" class="dev-val">40</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- === World tab === -->
+          <div class="dev-tab-panel hidden" data-tab-panel="world">
+            <div class="dev-section">
+              <h3>🌍 World Generation (Preview)</h3>
+              <div class="dev-slider-row">
+                <label for="dev-map-cols">Map Width (tiles)</label>
+                <input type="range" id="dev-map-cols" min="16" max="128" value="32" step="8">
+                <span id="dev-map-cols-val" class="dev-val">32</span>
+              </div>
+              <div class="dev-slider-row">
+                <label for="dev-map-rows">Map Height (tiles)</label>
+                <input type="range" id="dev-map-rows" min="16" max="128" value="24" step="8">
+                <span id="dev-map-rows-val" class="dev-val">24</span>
+              </div>
+              <div class="dev-slider-row">
+                <label for="dev-zone-spacing">Zone Spacing (tiles)</label>
+                <input type="range" id="dev-zone-spacing" min="4" max="32" value="12" step="2">
+                <span id="dev-zone-spacing-val" class="dev-val">12</span>
+              </div>
+              <div class="dev-slider-row">
+                <label for="dev-tree-density">Tree Density</label>
+                <input type="range" id="dev-tree-density" min="0" max="50" value="11" step="1">
+                <span id="dev-tree-density-val" class="dev-val">11</span>
+              </div>
+              <div class="dev-slider-row">
+                <label for="dev-guard-count">Guard Count</label>
+                <input type="range" id="dev-guard-count" min="0" max="12" value="4" step="1">
+                <span id="dev-guard-count-val" class="dev-val">4</span>
+              </div>
+              <div class="dev-slider-row">
+                <label for="dev-building-count">Building Count</label>
+                <input type="range" id="dev-building-count" min="1" max="15" value="3" step="1">
+                <span id="dev-building-count-val" class="dev-val">3</span>
+              </div>
+              <div class="dev-slider-row">
+                <label for="dev-material-loot">Crafting Loot Chance</label>
+                <input type="range" id="dev-material-loot" min="0" max="200" value="100" step="10">
+                <span id="dev-material-loot-val" class="dev-val">100</span>
+              </div>
+              <div class="dev-slider-row">
+                <label for="dev-drop-amount">Drop Amount</label>
+                <input type="range" id="dev-drop-amount" min="1" max="5" value="1" step="1">
+                <span id="dev-drop-amount-val" class="dev-val">1</span>
+              </div>
+              <div class="dev-slider-row">
+                <label for="dev-seed">Seed (blank = random)</label>
+                <input type="number" id="dev-seed" placeholder="Random" style="width: 80px; padding: 4px; border-radius: 6px; border: 1px solid #475569; background: rgba(0,0,0,0.3); color: #f8fafc; font-family: 'Outfit', sans-serif;">
+              </div>
+              <div class="dev-ratio-display">
+                Current Seed: <strong id="dev-current-seed">—</strong>
+              </div>
+              <button id="btn-regen-world" class="btn-primary" style="margin-top: 8px; font-size: 14px;">🔄 Regenerate World</button>
+            </div>
+          </div>
+
+          <!-- === Farm tab === -->
+          <div class="dev-tab-panel hidden" data-tab-panel="farm">
+            <div class="dev-section">
+              <h3>🌱 Home Farm</h3>
+              <div class="dev-btn-row">
+                <button id="dev-grow-crops" class="btn-secondary dev-btn">🌾 Instantly Grow Crops</button>
+                <button id="dev-water-crops" class="btn-secondary dev-btn">💧 Water All Plots</button>
+              </div>
+              <div class="dev-btn-row" style="margin-top: 10px;">
+                <button id="dev-give-seeds" class="btn-secondary dev-btn">+20 Seeds</button>
+                <button id="dev-toggle-scarecrow" class="btn-secondary dev-btn">🎃 Toggle Scarecrow</button>
+                <button id="dev-spawn-crow" class="btn-secondary dev-btn">🐦‍⬛ Spawn Crow</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- === Cheats tab === -->
+          <div class="dev-tab-panel hidden" data-tab-panel="cheats">
+            <div class="dev-section">
+              <h3>🎮 Cheats</h3>
+              <div class="dev-btn-row">
+                <button id="dev-give-pebbles" class="btn-secondary dev-btn">+100 Pebbles</button>
+                <button id="dev-full-hydration" class="btn-secondary dev-btn">Max Hydration</button>
+                <button id="dev-toggle-helmet" class="btn-secondary dev-btn">Toggle Helmet</button>
+              </div>
+              <div class="dev-slider-row" style="margin-top: 10px;">
+                <label for="dev-spawn-select">Spawn Item</label>
+                <select id="dev-spawn-select" style="flex: 1 1 auto; padding: 4px; border-radius: 6px; border: 1px solid #475569; background: rgba(0,0,0,0.3); color: #f8fafc; font-family: 'Outfit', sans-serif;"></select>
+              </div>
+              <div class="dev-btn-row">
+                <button id="dev-spawn-btn" class="btn-secondary dev-btn">✨ Spawn</button>
+              </div>
+              <div class="dev-btn-row" style="margin-top: 10px;">
+                <button id="dev-untame-pets" class="btn-secondary dev-btn">🐾 Untame Pets</button>
+              </div>
+              <div class="dev-btn-row" style="margin-top: 10px;">
+                <button id="dev-reset-progress" class="btn-secondary dev-btn" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4); color: #fca5a5;">⚠️ Reset All Progress</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- === Debug tab === -->
+          <div class="dev-tab-panel hidden" data-tab-panel="debug">
+            <div class="dev-section dev-sprite-section">
+              <h3>Sprite Gallery</h3>
+              <div class="dev-debug-log-header">
+                <span>Furniture atlas crops</span>
+                <button id="dev-refresh-sprites" class="btn-secondary dev-btn" style="padding: 2px 10px; font-size: 12px;">Refresh</button>
+              </div>
+              <div id="dev-sprite-gallery" class="dev-sprite-gallery"></div>
+            </div>
+
+            <div class="dev-section">
+              <h3>🐞 Diagnostics</h3>
+              <div id="dev-debug-stats" class="dev-debug-stats">Open in-game to see live stats…</div>
+              <div class="dev-debug-log-header">
+                <span>Event Log (newest first)</span>
+                <button id="dev-clear-log" class="btn-secondary dev-btn" style="padding: 2px 10px; font-size: 12px;">Clear</button>
+              </div>
+              <div id="dev-debug-log" class="dev-debug-log"></div>
+              <div class="dev-btn-row" style="margin-top: 8px;">
+                <button id="dev-throw-test" class="btn-secondary dev-btn">Throw Test Error</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="shop-footer">
+          <button id="btn-close-dev" class="btn-secondary">Resume Game</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rotate-device gate: the game is designed for landscape -->
+    <div id="rotate-overlay">
+      <div class="rotate-content">
+        <div class="rotate-phone">📱</div>
+        <img src="/src/assets/ui/axel.svg" alt="Axel" width="96" height="72">
+        <h2>Turn your screen sideways</h2>
+        <p>Axel needs room for both your thumbs.</p>
+      </div>
+    </div>
+
+    <!-- Transit Fade Screen -->
+    <div id="transit-screen" class="transit-overlay hidden">
+      <div class="transit-content">
+        <div class="transit-bus">🚌</div>
+        <div id="transit-heading">Boarding Bus...</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Initialize Application -->
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
