@@ -2941,3 +2941,8 @@ body.dev-tools .btn-dev { display: inline-flex !important; }
   #minimap-container #area-badge-sub { display: none; }
   #minimap-container:not(.collapsed) #minimap-canvas { max-height: 36px; }
 }
+/* Keep the enlarged stick and its label inside the safe bottom edge. */
+#joystick-zone { transform-origin: left bottom; }
+@media (max-width: 650px) and (max-height: 360px) {
+  .play-coach { max-width: calc(100% - 360px); }
+}
